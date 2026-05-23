@@ -14,6 +14,7 @@ class SubjectOut(BaseModel):
     name: str
     code: str | None
     class_id: str
+    teacher_id: str | None
 
     model_config = {"from_attributes": True}
 
@@ -22,11 +23,14 @@ class SubjectCreate(BaseModel):
     name: str
     code: str | None = None
     class_id: str
+    teacher_id: str | None = None
 
 
 class SubjectUpdate(BaseModel):
     name: str | None = None
     code: str | None = None
+    class_id: str | None = None
+    teacher_id: str | None = None
 
 
 @router.get("/", response_model=list[SubjectOut])
@@ -48,7 +52,7 @@ async def create_subject(
     db: AsyncSession = Depends(get_db),
     _=Depends(get_current_user),
 ):
-    subject = Subject(name=data.name, code=data.code, class_id=data.class_id)
+    subject = Subject(name=data.name, code=data.code, class_id=data.class_id, teacher_id=data.teacher_id)
     db.add(subject)
     await db.flush()
     await db.refresh(subject)

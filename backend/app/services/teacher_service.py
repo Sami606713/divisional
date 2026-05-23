@@ -17,6 +17,8 @@ class TeacherService:
     async def create_teacher(self, data: TeacherCreate) -> Teacher:
         if data.email and await self.user_repo.exists_by_email(data.email):
             raise ConflictException("Email already registered")
+        if data.phone and await self.user_repo.exists_by_phone(data.phone):
+            raise ConflictException("Phone number already registered")
 
         user = User(
             name=data.name,
@@ -35,7 +37,8 @@ class TeacherService:
             joining_date=data.joining_date,
             salary=data.salary,
         )
-        return await self.repo.create(teacher)
+        created = await self.repo.create(teacher)
+        return await self.repo.get_by_id(created.id)
 
     async def get_teacher(self, teacher_id: str) -> Teacher:
         teacher = await self.repo.get_by_id(teacher_id)

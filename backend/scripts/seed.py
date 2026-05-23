@@ -7,6 +7,7 @@ import datetime
 from app.database import AsyncSessionLocal
 from app.models.user import User, UserRole
 from app.models.class_ import Class
+from app.models.subject import Subject
 from app.models.teacher import Teacher
 from app.models.student import Student, Gender
 from app.models.notice import Notice, NoticeType
@@ -32,6 +33,15 @@ async def seed():
             db.add(cls)
             await db.flush()
             classes.append(cls)
+
+            # Seed a few standard subjects per class so timetable and marks screens have data.
+            for subject_name, code in [
+                ("English", "ENG"),
+                ("Mathematics", "MTH"),
+                ("Science", "SCI"),
+                ("Urdu", "URD"),
+            ]:
+                db.add(Subject(name=subject_name, code=code, class_id=cls.id))
 
         # 3 teachers
         teachers = []

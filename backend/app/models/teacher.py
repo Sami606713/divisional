@@ -17,5 +17,6 @@ class Teacher(Base, UUIDMixin, TimestampMixin):
 
     user: Mapped["User"] = relationship(back_populates="teacher")  # noqa: F821
     class_teacher_of: Mapped["Class"] = relationship(back_populates="class_teacher", uselist=False)  # noqa: F821
+    subjects: Mapped[list["Subject"]] = relationship(back_populates="teacher")  # noqa: F821
     timetable_slots: Mapped[list["Timetable"]] = relationship(back_populates="teacher")  # noqa: F821
     results_entered: Mapped[list["Result"]] = relationship(back_populates="entered_by")  # noqa: F821

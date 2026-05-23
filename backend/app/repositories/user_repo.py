@@ -30,3 +30,7 @@ class UserRepository(BaseRepository[User]):
     async def exists_by_email(self, email: str) -> bool:
         result = await self.db.execute(select(User.id).where(User.email == email))
         return result.scalar_one_or_none() is not None
+
+    async def exists_by_phone(self, phone: str) -> bool:
+        result = await self.db.execute(select(User.id).where(User.phone == phone))
+        return result.scalar_one_or_none() is not None

@@ -1,4 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 from app.repositories.student_repo import StudentRepository
 from app.repositories.user_repo import UserRepository
 from app.models.user import User, UserRole
@@ -17,6 +18,8 @@ class StudentService:
     async def create_student(self, data: StudentCreate) -> Student:
         if data.email and await self.user_repo.exists_by_email(data.email):
             raise ConflictException("Email already registered")
+        if data.phone and await self.user_repo.exists_by_phone(data.phone):
+            raise ConflictException("Phone number already registered")
 
         user = User(
             name=data.name,
@@ -25,7 +28,15 @@ class StudentService:
             password_hash=hash_password(data.password),
             role=UserRole.STUDENT,
         )
-        await self.user_repo.create(user)
+        try:
+            await self.user_repo.create(user)
+        except IntegrityError as e:
+            detail = str(e.orig)
+            if "phone" in detail:
+                raise ConflictException("Phone number already registered")
+            if "email" in detail:
+                raise ConflictException("Email already registered")
+            raise ConflictException("Duplicate entry — check email or phone")
 
         roll_number = await self.repo.generate_roll_number(data.session_year)
         student = Student(
@@ -40,7 +51,8 @@ class StudentService:
             class_id=data.class_id,
             parent_id=data.parent_id,
         )
-        return await self.repo.create(student)
+        created = await self.repo.create(student)
+        return await self.repo.get_by_id(created.id)
 
     async def get_student(self, student_id: str) -> Student:
         student = await self.repo.get_by_id(student_id)
