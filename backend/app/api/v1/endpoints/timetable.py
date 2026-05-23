@@ -22,6 +22,18 @@ async def get_class_timetable(
     return result.scalars().all()
 
 
+@router.get("/teacher/{teacher_id}", response_model=list[TimetableOut])
+async def get_teacher_timetable(
+    teacher_id: str,
+    db: AsyncSession = Depends(get_db),
+    _=Depends(get_current_user),
+):
+    result = await db.execute(
+        select(Timetable).where(Timetable.teacher_id == teacher_id).order_by(Timetable.day, Timetable.period)
+    )
+    return result.scalars().all()
+
+
 @router.post("/", response_model=TimetableOut, status_code=201)
 async def create_timetable_entry(
     data: TimetableCreate,

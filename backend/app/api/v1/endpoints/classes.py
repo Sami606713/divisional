@@ -53,6 +53,45 @@ async def create_class(
     return obj
 
 
+@router.put("/{class_id}", response_model=ClassOut)
+async def update_class(
+    class_id: str,
+    data: ClassUpdate,
+    db: AsyncSession = Depends(get_db),
+    _=Depends(get_current_user),
+):
+    result = await db.execute(select(Class).where(Class.id == class_id))
+    school_class = result.scalar_one_or_none()
+    if not school_class:
+        raise NotFoundException("Class")
+    for field, value in data.model_dump(exclude_unset=True).items():
+        setattr(school_class, field, value)
+    await db.flush()
+    await db.refresh(school_class)
+    cnt_result = await db.execute(
+        select(func.count()).select_from(Student).where(Student.class_id == class_id)
+    )
+    count = cnt_result.scalar_one()
+    obj = ClassOut.model_validate(school_class)
+    obj.student_count = count
+    await db.commit()
+    return obj
+
+
+@router.delete("/{class_id}", status_code=204)
+async def delete_class(
+    class_id: str,
+    db: AsyncSession = Depends(get_db),
+    _=Depends(get_current_user),
+):
+    result = await db.execute(select(Class).where(Class.id == class_id))
+    school_class = result.scalar_one_or_none()
+    if not school_class:
+        raise NotFoundException("Class")
+    await db.delete(school_class)
+    await db.commit()
+
+
 @router.get("/{class_id}", response_model=ClassOut)
 async def get_class(
     class_id: str,

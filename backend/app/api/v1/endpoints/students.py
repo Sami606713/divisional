@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.services.student_service import StudentService
@@ -10,14 +12,29 @@ from app.schemas.attendance import AttendanceOut, AttendanceSummary
 from app.schemas.exam import ResultOut
 from app.schemas.fee import FeeRecordOut
 from app.dependencies import get_current_user
+from app.models.student import Student
 
 router = APIRouter()
+
+
+@router.get("/me", response_model=StudentOut)
+async def get_my_student_profile(
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    result = await db.execute(
+        select(Student).options(selectinload(Student.user)).where(Student.user_id == current_user.id)
+    )
+    student = result.scalar_one_or_none()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student profile not found")
+    return student
 
 
 @router.get("/", response_model=list[StudentOut])
 async def list_students(
     skip: int = Query(0, ge=0),
-    limit: int = Query(20, le=100),
+    limit: int = Query(20, le=500),
     db: AsyncSession = Depends(get_db),
     _=Depends(get_current_user),
 ):

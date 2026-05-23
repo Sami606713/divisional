@@ -31,9 +31,16 @@ class UserOut(UserBase):
 
 
 class LoginRequest(BaseModel):
-    credential: str   # email or roll number
+    credential: str   # email or phone
     password: str
-    role: UserRole
+
+
+class RegisterRequest(BaseModel):
+    name: str
+    email: EmailStr
+    phone: str | None = None
+    password: str
+    role: UserRole = UserRole.STUDENT
 
 
 class ChangePasswordRequest(BaseModel):
