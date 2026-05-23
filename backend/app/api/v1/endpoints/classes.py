@@ -32,6 +32,26 @@ async def list_classes(
     return out
 
 
+@router.get("/public", response_model=list[ClassOut])
+async def list_classes_public(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, le=200),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(Class).offset(skip).limit(limit))
+    classes = result.scalars().all()
+    out = []
+    for c in classes:
+        cnt_result = await db.execute(
+            select(func.count()).select_from(Student).where(Student.class_id == c.id)
+        )
+        count = cnt_result.scalar_one()
+        obj = ClassOut.model_validate(c)
+        obj.student_count = count
+        out.append(obj)
+    return out
+
+
 @router.post("/", response_model=ClassOut, status_code=201)
 async def create_class(
     data: ClassCreate,

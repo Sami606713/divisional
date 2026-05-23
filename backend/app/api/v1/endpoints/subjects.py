@@ -46,6 +46,18 @@ async def list_subjects(
     return result.scalars().all()
 
 
+@router.get("/public", response_model=list[SubjectOut])
+async def list_subjects_public(
+    class_id: str | None = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    q = select(Subject)
+    if class_id:
+      q = q.where(Subject.class_id == class_id)
+    result = await db.execute(q)
+    return result.scalars().all()
+
+
 @router.post("/", response_model=SubjectOut, status_code=201)
 async def create_subject(
     data: SubjectCreate,

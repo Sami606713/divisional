@@ -37,6 +37,16 @@ async def list_teachers(
     return await svc.list_teachers(skip=skip, limit=limit)
 
 
+@router.get("/public", response_model=list[TeacherOut])
+async def list_teachers_public(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, le=200),
+    db: AsyncSession = Depends(get_db),
+):
+    svc = TeacherService(db)
+    return await svc.list_teachers(skip=skip, limit=limit)
+
+
 @router.post("/", response_model=TeacherOut, status_code=201)
 async def create_teacher(
     data: TeacherCreate,

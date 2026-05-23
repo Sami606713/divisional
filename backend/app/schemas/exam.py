@@ -48,3 +48,22 @@ class ResultOut(BaseModel):
     is_passed: bool
 
     model_config = {"from_attributes": True}
+
+
+class PublicMeritEntry(BaseModel):
+    student_id: str
+    student_name: str
+    class_name: str
+    total_marks: float
+    obtained_marks: float
+    percentage: float
+    grade: str
+    rank: int
+
+
+class PublicExamResultsSummary(BaseModel):
+    exam: ExamOut
+    pass_rate: float
+    a_plus_students: int
+    total_students: int
+    merit_list: list[PublicMeritEntry]
